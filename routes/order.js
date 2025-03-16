@@ -1,33 +1,12 @@
 const router = require('express').Router();
 const Order = require('../models/Order');
+const {createOrder, getUserOrders} = require('../controllers/order');
+
 
 //CREATE ORDER
-router.post("/placeOrder", async (req,res) => {
-    const newOrder = new Order({
-
-        userId: req.body.userId,
-        products: req.body.products,
-        amount: req.body.amount,
-        address: req.body.address,
-        status: req.body.status,
-    });
-    try {
-        const savedOrder = await newOrder.save();
-        res.status(200).json(savedOrder);
-    } catch (error) {
-        res.status(500).json(error);
-    }
-});
+router.post("/placeOrder", createOrder);
 
 //GET USER ORDERS
-router.get("/getOrders/:userId", async (req,res) => {
-    try {
-        const orders = await Order.find({userId: req.params.userId});
-        res.status(200).json(orders);
-        
-    } catch (err) {
-        res.Status(500).json("Error while fetching orders from DataBase"+err);
-        
-    }
-});
+router.get("/:userId", getUserOrders);
+
 module.exports = router; 
