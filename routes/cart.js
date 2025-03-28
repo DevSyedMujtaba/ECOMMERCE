@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Cart = require('../models/Cart');
 const {createCart,getCartItems,removeProductFromCart} = require('../controllers/cart');
+const localAuthMiddleware = require('../middlewares/authMiddleware');
 
 // CREATE A CART AND ADD TO CART
 router.post("/addToCart", createCart);

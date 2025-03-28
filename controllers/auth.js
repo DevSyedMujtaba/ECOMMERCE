@@ -24,9 +24,9 @@ const login = async (req, res) => {
     try {
 
         //FIND USER
-        const user = await User.findOne({ username: req.body.username });
+        const user = await User.findOne({ email: req.body.email });
         if (!user) {
-            return res.status(401).json("Wrong username!");
+            return res.status(401).json("Wrong email!");
         }
 
 
@@ -43,8 +43,12 @@ const login = async (req, res) => {
         
 
         //SEND RESPONSE IF PASSWORD IS CORRECT
-        const { password, ...others } = user._doc;
-        res.status(200).json({...others});
+        // const { password, ...others } = user._doc;
+        const token = jwt.sign({
+            id: user._id,
+            email: user.email
+        }, process.env.JWT_SEC, {expiresIn: "1h",});
+        res.status(200).json({token, user});
 
     } catch (err) {
         res.status(500).json(err);
