@@ -15,7 +15,6 @@ This is a **Node.js & Express.js** backend for an E-commerce application with **
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB (Local & Cloud)
 - **Authentication:** JSON Web Tokens (JWT)
-- **Validation:** Express Validator, Joi
 - **Logging:** Custom Middleware with File Logging
 
 ## 📂 Project Structure
@@ -26,7 +25,7 @@ ECOMMERCE/
 │── models/            # Mongoose models
 │── routes/            # API route handlers
 │── logs/              # Request logs
-│── config/            # Database configuration
+│── db.js/            # Database configuration
 │── .env               # Environment variables
 │── index.js           # Main entry point
 │── package.json       # Dependencies and scripts
