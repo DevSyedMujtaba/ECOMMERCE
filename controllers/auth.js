@@ -2,19 +2,33 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const Cryptojs = require('crypto-js');  
 
-
 // REGISTER
 const register = async (req, res) => {
-    const newUser = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: Cryptojs.AES.encrypt(req.body.password, process.env.PASS_SEC).toString()
-    });
     try {
+
+        const doesExist = await User.findOne({email: req.body.email});
+        if(doesExist){
+            console.log('This email is already been registered');
+            return res.status(409).json({ error: "Email is already registered." });
+        }
+
+        const newUser = new User({
+            username: req.body.username,
+            email: req.body.email,
+            password: Cryptojs.AES.encrypt(req.body.password, process.env.PASS_SEC).toString()
+        });
+
         const savedUser = await newUser.save();
         res.status(201).json(savedUser);
+        
     } catch (err) {
-        res.status(500).json(err);
+        if (err.isJoi === true){
+            err.status = 422
+            res.status(422).json('Joi Error '+ err)
+        } 
+        else{
+        res.status(500).json('Server Error '+ err);
+        }
     }
 }
 
