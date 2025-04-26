@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const Cryptojs = require('crypto-js');  
+const Cryptojs = require('crypto-js'); 
 
 // REGISTER
 const register = async (req, res) => {
@@ -61,11 +61,18 @@ const login = async (req, res) => {
         const token = jwt.sign({
             id: user._id,
             email: user.email
-        }, process.env.JWT_SEC, {expiresIn: "1h",});
-        res.status(200).json({token, user});
+        }, process.env.JWT_SEC, {expiresIn: "3d",});
+
+        //STORING TOKEN IN COOKIE
+        res.cookie('token',token,{
+            httpOnly: true,
+            secure: false,
+            maxAge: 259200000
+        })
+        return res.status(200).json({token, user});
 
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json('Internal server error '+err);
     }
 
 
