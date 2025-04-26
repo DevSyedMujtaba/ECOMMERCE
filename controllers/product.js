@@ -37,7 +37,7 @@ const allProducts = async (req, res) => {
 
     try {
 
-        const products = await Product.find();
+        const products = await Product.find({isDeleted: false});
         res.status(200).json(products);
 
     } catch (err) {
