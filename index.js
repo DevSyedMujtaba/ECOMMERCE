@@ -26,7 +26,7 @@ app.use(passport.initialize());
 app.use(logRequest)  // We are using that logging middleware here.
 app.use(express.json());
 app.use(cors());
-app.use(cookieParser());
+// app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoute);
@@ -34,5 +34,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/product", authMiddleware, productRoute);
 app.use("/api/cart", authMiddleware, cartRoute);
 app.use("/api/order", authMiddleware, orderRoute);
+
 // Admin routes
-app.use("/api/admin",authMiddleware, adminRoutes);
+app.use("/api/admin/auth", adminRoutes);
+app.use("/api/admin/product", authMiddleware, adminRoutes);
