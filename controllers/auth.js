@@ -1,13 +1,13 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const Cryptojs = require('crypto-js'); 
+const Cryptojs = require('crypto-js');
 
 // REGISTER
 const register = async (req, res) => {
     try {
 
-        const doesExist = await User.findOne({email: req.body.email});
-        if(doesExist){
+        const doesExist = await User.findOne({ email: req.body.email });
+        if (doesExist) {
             console.log('This email is already been registered');
             return res.status(409).json({ error: "Email is already registered." });
         }
@@ -20,14 +20,14 @@ const register = async (req, res) => {
 
         const savedUser = await newUser.save();
         res.status(201).json(savedUser);
-        
+
     } catch (err) {
-        if (err.isJoi === true){
+        if (err.isJoi === true) {
             err.status = 422
-            res.status(422).json('Joi Error '+ err)
-        } 
-        else{
-        res.status(500).json('Server Error '+ err);
+            res.status(422).json('Joi Error ' + err)
+        }
+        else {
+            res.status(500).json('Server Error ' + err);
         }
     }
 }
@@ -54,25 +54,33 @@ const login = async (req, res) => {
             return res.status(401).json("Wrong password!");
         }
 
-        
+
 
         //SEND RESPONSE IF PASSWORD IS CORRECT
         // const { password, ...others } = user._doc;
         const token = jwt.sign({
             id: user._id,
-            email: user.email
-        }, process.env.JWT_SEC, {expiresIn: "3d",});
+            email: user.email,
+            role: user.role
+        }, process.env.JWT_SEC, { expiresIn: "3d", });
 
         //STORING TOKEN IN COOKIE
-        res.cookie('token',token,{
-            httpOnly: true,
-            secure: false,
-            maxAge: 259200000
-        })
-        return res.status(200).json({token, user});
+        // res.cookie('token',token,{
+        //     httpOnly: true,
+        //     secure: false,
+        //     maxAge: 259200000
+        // })
+        res.status(200).json({
+            auth: { token },
+            user: {
+                id: user._id,
+                email: user.email,
+                role: user.role
+            }
+        });
 
     } catch (err) {
-        res.status(500).json('Internal server error '+err);
+        res.status(500).json('Internal server error ' + err);
     }
 
 

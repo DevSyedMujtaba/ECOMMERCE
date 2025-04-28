@@ -1,5 +1,73 @@
 const Product = require("../models/Product")
+const User = require('../models/User')
+const Cryptojs = require('crypto-js');
+const jwt = require('jsonwebtoken');
 
+
+//REGISTER ADMIN
+const registerAdmin = async (req, res) => {
+
+    try {
+
+        const { username, email } = req.body;
+        const doesExist = await User.findOne({email});
+        if (doesExist) {
+            return res.status(409).json({ error: "Email is already registered." });
+        }
+        
+        const newAdmin = new User({
+            username,
+            email,
+            password: Cryptojs.AES.encrypt(req.body.password, process.env.PASS_SEC).toString(),
+            role: 'admin',
+        })
+
+        const savedAdmin = await newAdmin.save();
+        return res.status(201).json({ message: 'Admin Created Successfully.', savedAdmin })
+
+    } catch (err) {
+        return res.status(500).json({message: 'Internal Server Error '+err});
+    }
+}
+
+// ADMIN LOGIN
+const adminLogin = async (req, res) =>{
+    try {
+        const admin = await User.findOne({email: req.body.email, role: 'admin'})
+        if(!admin){
+            res.status(404).json({success: false, message: 'admin not found'})
+        }
+
+        const hashedPassword = Cryptojs.AES.decrypt(admin.password,process.env.PASS_SEC);
+        const originalPassword = hashedPassword.toString(Cryptojs.enc.Utf8);
+
+        if(originalPassword !== req.body.password){
+            return res.status(401).json("Wrong password!");
+        }
+
+        // Generate Token
+        const token = jwt.sign(
+            {
+                id: admin._id,
+                email: admin.email,
+                role: admin.role,
+            }, process.env.JWT_SEC, { expiresIn: "3d", }
+        )
+
+        // Send Response
+        res.status(200).json({
+            auth: {token},
+            user:{
+                id: admin._id,
+                email: admin.email,
+                role: admin.role
+            }
+        })
+
+    } catch (err) {
+        res.status(500).json('Internal server error ' + err);
+    }
+}
 
 // GET ALL PRODUCTS
 const getAllProducts = async (req, res) => {
@@ -58,7 +126,7 @@ const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
-        const product = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators:true });
+        const product = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
 
         //Check if product exists
         if (!product) {
@@ -76,4 +144,4 @@ const updateProduct = async (req, res) => {
 
 
 
-module.exports = { getAllProducts, addProduct, softDeleteProduct, updateProduct }
+module.exports = { getAllProducts, addProduct, softDeleteProduct, updateProduct, registerAdmin, adminLogin }

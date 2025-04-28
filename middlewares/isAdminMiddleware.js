@@ -1,26 +1,45 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
-const isAdminMiddleware = async(req,res,next) =>{
+const isAdminMiddleware = async (req, res, next) => {
     try {
-        const token = req.cookies.token
+        // Get token from headers
+        const token = req.headers.authorization?.split(' ')[1] ;                            
+
         if (!token) {
-            return res.status(401).json({ message: 'Unauthorized: No token provided'});
+            return res.status(401).json({ 
+                success: false,
+                message: 'Access denied: No token provided'
+            });
         }
+
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SEC);
         
-        const decoded = jwt.verify(token,process.env.JWT_SEC)
-        const user = await User.findById(decoded.id)
-        if(!user){
-            return res.status(403).json({ message: 'User not found'});
+        // Find user with additional role check
+        const user = await User.findOne({
+            _id: decoded.id,
+            role: 'admin' // Ensures only admins can pass
+        });
+
+        if (!user) {
+            return res.status(403).json({ 
+                success: false,
+                message: 'Admin privileges required'
+            });
         }
-        if(user.role !== 'admin'){
-            return res.status(403).json({ success: false, message: 'Unauthorized: not an Admin'});
-        }
-        next()
+
+        // Attach user to request
+        req.user = user;
+        next();
        
     } catch (err) {
-        return res.status(500).json({ message: 'Internal server error' +err});
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
     }
-}
+};
 
 module.exports= isAdminMiddleware
